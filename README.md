@@ -40,15 +40,15 @@ its TT-SVD algorithm is as follow is:
 $\mathcal{T} \rightarrow \mathcal{T}_{(1)} \in \mathbb{R}^{n_1 \times (n_2 \times \ldots \times n_d)}$
 
 - **Step 2**: SVD on mod-1 tensor  
-$$\mathcal{T}_{(1)} = U_1 \Sigma_1 V_1^T$, where $U_1 \in \mathbb{R}^{n_1 \times r_1}$, $\Sigma_1 \in \mathbb{R}^{r_1 \times r_1}$, and $V_1 \in \mathbb{R}^{(n_2 \times \ldots \times n_d) \times r_1}$$
-$$G^{(1)} = $ reshape $U_1 $ into $r_0 \times n_1 \times r_1$ and $\mathcal{T}_{(1)}' = \Sigma_1 \cdot V_1^T$$
+1. $\mathcal{T}_{(1)} = U_1 \Sigma_1 V_1^T$, where $U_1 \in \mathbb{R}^{n_1 \times r_1}$, $\Sigma_1 \in \mathbb{R}^{r_1 \times r_1}$, and $V_1 \in \mathbb{R}^{(n_2 \times \ldots \times n_d) \times r_1}$
+2. $G^{(1)} =  \text{ reshape } U_1  \text{ into } r_0 \times n_1 \times r_1 \text{ and } \mathcal{T}_{(1)}' = \Sigma_1 \cdot V_1^T$
 
 - **Step 3**: Reshaping into mod-1,2 tensor
 
 $$\mathcal{T}_{(1)}' \rightarrow \mathcal{T}_{(2)}' \in \mathbb{R}^{(r_1 n_2) \times (n_3 \times \ldots \times n_d)}$$ 
 - **Step 4**: SVD on mod-1,2 tensor  
-$$\mathcal{T}_{(2)}' = U_2 \Sigma_2 V_2^T$, where $U_2 \in \mathbb{R}^{(r_1 n_2) \times r_2}$, $\Sigma_2 \in \mathbb{R}^{r_2 \times r_2}$, and $V_2 \in \mathbb{R}^{(n_3 \times \ldots \times n_d) \times r_2}$$ 
-$$$G^{(2)} = $ reshape $U_2 $ into $r_1 \times n_2 \times r_2$ and $\mathcal{T}_{(2)}'' = \Sigma_2 \cdot V_2^T$$
+1. $\mathcal{T}_{(2)}' = U_2 \Sigma_2 V_2^T$, where $U_2 \in \mathbb{R}^{(r_1 n_2) \times r_2}$, $\Sigma_2 \in \mathbb{R}^{r_2 \times r_2}$, and $V_2 \in \mathbb{R}^{(n_3 \times \ldots \times n_d) \times r_2}$
+2. $G^{(2)} = $ reshape $U_2 $ into $r_1 \times n_2 \times r_2$ and $\mathcal{T}_{(2)}'' = \Sigma_2 \cdot V_2^T$
 - **Step 5**: Repeat step 3 and 4 until the last mode
 ### Orthogonalization in TT-format
 1. Left orthogonalization
