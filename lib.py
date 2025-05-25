@@ -571,6 +571,76 @@ def DMD(X1, X2, r, dt):
         return Phi, omega, Lambda, alpha1, b, X_dmd, time_dynamics.T
 
 
+def matricize_tt(tt_cores, row_modes, col_modes, dims):
+    """
+    Matricizes a Tensor Train (TT) tensor into a matrix.
+
+    Args:
+        tt_cores (list of numpy.ndarray): List of TT-cores.
+        row_modes (tuple of int): Indices of modes to form rows.
+        col_modes (tuple of int): Indices of modes to form columns.
+        dims (tuple of int): Original dimensions of the tensor.
+
+    Returns:
+        numpy.ndarray: Matricized tensor.
+    """
+    num_cores = len(tt_cores)
+    row_size = np.prod([dims[i] for i in row_modes])
+    col_size = np.prod([dims[i] for i in col_modes])
+
+    # Initial contraction
+    core_idx = 0
+    if core_idx in row_modes:
+        row_pos = row_modes.index(core_idx)
+        curr_rows = dims[core_idx]
+    else:
+        row_pos = -1
+        curr_rows = 1
+
+    if core_idx in col_modes:
+      col_pos = col_modes.index(core_idx)
+      curr_cols = dims[core_idx]
+    else:
+      col_pos = -1
+      curr_cols = 1
+
+    matrix = tt_cores[core_idx]
+
+    # Subsequent contractions
+    for core_idx in range(1, num_cores):
+        if core_idx in row_modes:
+          row_pos = row_modes.index(core_idx)
+          next_rows = dims[core_idx]
+        else:
+          row_pos = -1
+          next_rows = 1
+
+        if core_idx in col_modes:
+          col_pos = col_modes.index(core_idx)
+          next_cols = dims[core_idx]
+        else:
+          col_pos = -1
+          next_cols = 1
+
+        if row_pos != -1 and col_pos != -1:
+          matrix = np.einsum('aij,jbk->abik', matrix, tt_cores[core_idx])
+          matrix = matrix.reshape(curr_rows*next_rows, curr_cols*next_cols, matrix.shape[-1])
+          curr_rows *= next_rows
+          curr_cols *= next_cols
+        elif row_pos != -1:
+          matrix = np.einsum('aij,jbk->abik', matrix, tt_cores[core_idx])
+          matrix = matrix.reshape(curr_rows*next_rows, matrix.shape[-1])
+          curr_rows *= next_rows
+        elif col_pos != -1:
+          matrix = np.einsum('ai,ijk->ajk', matrix, tt_cores[core_idx])
+          matrix = matrix.reshape(matrix.shape[0], curr_cols*next_cols)
+          curr_cols *= next_cols
+        else:
+          matrix = np.einsum('ai,ijk->ajk', matrix, tt_cores[core_idx])
+
+    return matrix.reshape(row_size, col_size)
+
+
 def pseudoinverse(tt_cores: list, l: int):
     """Calculate pseudoinverse.
 
@@ -607,29 +677,46 @@ def pseudoinverse(tt_cores: list, l: int):
 
     # Step 3. Compute SVD of x_l(r_(l-1), n_l; r_l).
 
+    x_l = tt_cores[l]
+    r_l_prev, n_l, r_l = x_l.shape
+    x_l_mat = x_l.reshape(r_l_prev * n_l, r_l)
 
+    U, S, V_T = np.linalg.svd(x_l_mat, full_matrices=False)
 
     # Step 4. Define tensor "y".
 
-    y =
+    y = U.reshape(r_l_prev, n_l, U.shape[1])
 
     # Step 5. Define tensor "z".
 
-    z =
+    x_l_next = tt_cores[l]
+    r_l, n_l_next, r_l_next = x_l_next.shape
+    x_l_next_mat = x_l_next.reshape(r_l, n_l_next * r_l_next)
+
+    z = V_T @ x_l_next_mat
 
     # Step 6.
 
-    x[l] = y
-    x[l+1] = z
-    r[l] = s
+    tt_cores_copy[l] = y
+    tt_cores_copy[l+1] = z
 
     # Step 7. Compute matrix M.
 
-    tensor = np.tensordot(tensor, tt_cores[i], axes=([-1], [0]))
+    k_l_prev = tt_cores_copy[l-1].shape[1]
+    M = np.tensordot(tt_cores_copy[0:l-1], tt_cores_copy[l,k_l_prev,:,:], axes=([-1], [0]))
+    n_prod_left = 1
+    for i in range(l):
+        n_prod_left *= tt_cores_copy[i].shape[2]
+    M = M.reshape(n_prod_left, r_l)
 
     # Step 8. Compute matrix N.
 
-    tensor = np.tensordot(tensor, tt_cores[i], axes=([-1], [0]))
+    k_l_next = tt_cores_copy[l+1].shape[1]
+    N = np.tensordot(tt_cores_copy[l+1,:,:,k_l_next], tt_cores_copy[l+2:], axes=([-1], [0]))
+    n_prod_right = 1
+    for i in range(l+1, d):
+        n_prod_left *= tt_cores_copy[i].shape[2]
+    N = N.reshape(r_l, n_prod_right)
 
     # Step 9. Compute pseudo-inverse and return.
 
