@@ -80,7 +80,7 @@ $$\mathcal{T}_{(1)}' \rightarrow \mathcal{T}_{(2)}' \in \mathbb{R}^{(r_1 n_2) \t
 
 We uses **QR** decomposition of the tensor to obtain the left orthogonal components.
 All cores left of position k are orthogonal:
-$$ \sum_{j=1}^{n_j} G_j(i)^TG_j(i) = I$$
+$$\sum_{j=1}^{n_j} G_j(i)^TG_j(i) = I$$
 
 Algorithms:
 
@@ -104,7 +104,7 @@ The output will be a list of orthogonal cores.
 
 We uses **QR** decomposition of the transpose of the tensor to obtain the transpose of orthogonal components.
 All cores left of position k are orthogonal:
-$$ \sum_{j=1}^{n_j} G_j(i)G_j(i)^T = I$$
+$$\sum_{j=1}^{n_j} G_j(i)G_j(i)^T = I$$
 
 # DMD with tensor algorithms:
 
@@ -155,20 +155,20 @@ So we need to find a way to compute the DMD modes without knowing $A$.
 The DMD algorithm is a method to compute the dominant modes of $X$. The algorithm is as follows:
 
 1. Compute the SVD of $X_1^{N-1}$:
-   $$X_1^{N-1} = U\Sigma V^*$$
+$$X_1^{N-1} = U\Sigma V^*$$
 
 We can take low-rank SVD:
-   $$X_1^{N-1} \approx U_r\Sigma_r V_r^*$$
+$$X_1^{N-1} \approx U_r\Sigma_r V_r^*$$
 
-   where $U_r$ is the first $r$ columns of $U$, $\Sigma_r$ is the first $r$ rows and columns of $\Sigma$, and $V_r$ is the first $r$ columns of $V$.
+where $U_r$ is the first $r$ columns of $U$, $\Sigma_r$ is the first $r$ rows and columns of $\Sigma$, and $V_r$ is the first $r$ columns of $V$.
 
 2. Compute the reduced-order model:
-   $$\hat{A} = U_r^*AU_r =  U_r^*X_2^{N} V_r \Sigma_r^{-1} \in \mathbb{C}^{r \times r}$$
+$$\hat{A} = U_r^*AU_r =  U_r^*X_2^{N} V_r \Sigma_r^{-1} \in \mathbb{C}^{r \times r}$$
 
-   where $X_2^{N}$ is the matrix of snapshots from $x_2$ to $x_N$.
+where $X_2^{N}$ is the matrix of snapshots from $x_2$ to $x_N$.
 
 3. Compute the eigenvalues and eigenvectors of $\hat{A}$: $$\hat{A}W = W\Lambda$$
-   $$\Lambda,W = \{\lambda_1,...,\lambda_r\}, \{w_1,...,w_r\} = \text{eig}(\hat{A})$$
+$$\Lambda,W = \{\lambda_1,...,\lambda_r\}, \{w_1,...,w_r\} = \text{eig}(\hat{A})$$
 
 4. Compute the DMD modes:
 $$\Phi = U_r W \in \mathbb{C}^{M \times r} $$
@@ -223,7 +223,7 @@ HODMD addresses these issues by using delay embedding, allowing us to:
 
 #### 1. Build Delay-Embedded Matrices
 
-Given the original data matrix $X \in \mathbb{R}^{M \times N}$, construct the delay-embedded matrices:
+Given the original data matrix $X\in\mathbb{R}^{M\times N}$, construct the delay-embedded matrices:
 
 $$\mathcal{X}_1 =
 \begin{bmatrix}
@@ -232,81 +232,64 @@ $$\mathcal{X}_1 =
 \vdots & \vdots & \ddots & \vdots \\
 \mathbf{x}_d & \mathbf{x}_{d+1} & \cdots & \mathbf{x}_N
 \end{bmatrix}
-\in \mathbb{R}^{Md \times N - d + 1}$$
+\in \mathbb{R}^{Md \times N - d + 1}
+$$
 
 Split into two parts:
 
-$$
-\mathcal{X}_1 = \text{columns } 1 \text{ to } N - d,\quad \mathcal{X}_2 = \text{columns } 2 \text{ to } N - d + 1
-$$
+$$\mathcal{X}_1 = \text{columns } 1 \text{ to } N - d,\quad \mathcal{X}_2 = \text{columns } 2 \text{ to } N - d + 1$$
 
-#### 2. Perform SVD on $ \mathcal{X}_1 $
+#### 2. Perform SVD on $\mathcal{X}_1$
 
 Compute the singular value decomposition:
 
-$$
-\mathcal{X}_1 = U \Sigma V^*
-$$
+$$\mathcal{X}_1 = U \Sigma V^*$$
 
-Optionally truncate to rank $ r $:
+Optionally truncate to rank $r$:
 
-$$
-U_r = U[:, :r],\quad \Sigma_r = \text{diag}(\Sigma[:r]),\quad V_r = V[:, :r]
-$$
+$$U_r = U[:, :r],\quad \Sigma_r = \text{diag}(\Sigma[:r]),\quad V_r = V[:, :r]$$
 
 #### 3. Compute Reduced Operator
 
 Project the dynamics onto the low-rank subspace:
 
-$$
-\hat{A} = U_r^* \mathcal{X}_2 V_r \Sigma_r^{-1} \in \mathbb{C}^{r \times r}
-$$
+$$\hat{A} = U_r^* \mathcal{X}_2 V_r \Sigma_r^{-1} \in \mathbb{C}^{r \times r}$$
 
-#### 4. Eigen-decomposition of $ \hat{A} $
+#### 4. Eigen-decomposition of $\hat{A}$
 
 Solve the eigenvalue problem:
 
-$$
-\hat{A} W = W \Lambda
-$$
+$$\hat{A} W = W \Lambda$$
 
 Where:
 
-- $ \Lambda = \text{diag}(\lambda_1, ..., \lambda_r) $: eigenvalues (complex)
-- $ W = [\mathbf{w}_1, ..., \mathbf{w}_r] $: eigenvectors
+- $\Lambda = \text{diag}(\lambda_1, ..., \lambda_r)$: eigenvalues (complex)
+- $W = [\mathbf{w}_1, ..., \mathbf{w}_r]$: eigenvectors
 
 #### 5. Compute Full-Space DMD Modes
 
 Reconstruct the DMD modes in the full space:
 
-$$
-\Phi = U_r W \in \mathbb{C}^{Md \times r}
-$$
+$$\Phi = U_r W \in \mathbb{C}^{Md \times r}$$
 
 To map back to the original space:
 
-$$
-\phi_m^{(original)} = \frac{1}{d} \sum_{k=1}^d \phi_m^{(k)}
-$$
+$$\phi_m^{(original)} = \frac{1}{d} \sum_{k=1}^d \phi_m^{(k)}$$
 
-Where $ \phi_m^{(k)} $ is the $ k $-th block of $ \Phi \mathbf{e}_m $, corresponding to the $ k $-th delay component.
+Where $\phi_m^{(k)}$ is the $k$-th block of $\Phi \mathbf{e}_m$, corresponding to the $k$-th delay component.
 
 #### 6. Reconstruct Time Series
 
-Using the initial amplitude coefficients $ b $, computed via least squares:
+Using the initial amplitude coefficients $b$, computed via least squares:
 
-$$
-b = \arg\min_{\mathbf{b}} \left\| \Phi \mathbf{b} - \mathcal{X}_1[:, 0] \right\|
-$$
+$$b = \arg\min_{\mathbf{b}} \left\| \Phi \mathbf{b} - \mathcal{X}_1[:, 0] \right\|$$
 
 Then the solution is:
 
-$$
-\mathbf{x}(t_i) = \sum_{m=1}^r b_m \phi_m e^{(\delta_m + i\omega_m)(i-1)\Delta t}
-$$
+$$\mathbf{x}(t_i) = \sum_{m=1}^r b_m \phi_m e^{(\delta_m + i\omega_m)(i-1)\Delta t}$$
 
 Where:
 
-- $ \log(\lambda_m) = (\delta_m + i\omega_m)\Delta t $
-- $ \phi_m $: spatial mode
-- $ b_m $: amplitude coefficient
+- $\log(\lambda_m) = (\delta_m + i\omega_m)\Delta t$
+- $\phi_m$: spatial mode
+- $b_m$: amplitude coefficient
