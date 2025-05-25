@@ -1,13 +1,13 @@
-import numpy as np 
-import tensorly as tl 
+import numpy as np
+import tensorly as tl
 import torch
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 import numpy as np
 import matplotlib.pyplot as plt
 from numpy import linalg
-import numpy as np  
-import matplotlib.pyplot as plt 
-from pydmd import HODMD 
+import numpy as np
+import matplotlib.pyplot as plt
+from pydmd import HODMD
 from pydmd.plotter import plot_eigs, plot_summary
 import warnings
 
@@ -15,13 +15,14 @@ warnings.filterwarnings("ignore")
 
 import numpy as np
 import matplotlib.pyplot as plt
-
 from pydmd import DMD, BOPDMD
 from pydmd.plotter import plot_eigs, plot_summary
 from pydmd.preprocessing import hankel_preprocessing
-from lib import*
+from lib import *
 from pydmd.preprocessing import hankel_preprocessing
-import pydmd 
+import pydmd
+
+
 def dynamic_mode_decomposition(xi, t, f, r=20,indices=[170, 199, 210]):
     """
     Perform Dynamic Mode Decomposition (DMD) on spatio-temporal data.
@@ -65,8 +66,6 @@ def dynamic_mode_decomposition(xi, t, f, r=20,indices=[170, 199, 210]):
         t_dyn[:, i] = b * np.exp(omega * t_train[i])
     f_dmd = Phi @ t_dyn
 
-
-
     # Step 5: Predict future dynamics
     t_ext = t
     t_ext_dyn = np.zeros((r, len(t_ext)), dtype=complex)
@@ -84,14 +83,14 @@ def dynamic_mode_decomposition(xi, t, f, r=20,indices=[170, 199, 210]):
     plot_2d_comparison(t_train, xi, f_train, f_dmd)
     plot_prediction(t, t_train, xi, f, f_dmd_ext, N_train, indices=indices)
     plot_2d_prediction(t_ext, xi, f_dmd_ext)
-    return dmd 
-    
+    return dmd
+
 # Helper Plotting Functions
 
 def plot_singular_values(S):
     plt.figure(figsize=(6, 6))
     plt.plot(S, ".")
-    
+
     plt.yscale("log")
     plt.title("Singular Values (log scale)")
     plt.xlabel("Index")
@@ -196,7 +195,8 @@ def plot_2d_prediction(t_ext, xi, f_dmd_ext):
     plt.xlabel("Time")
     plt.ylabel("Space (x)")
     plt.show()
-    
+
+
 def reconstruct_from_tt(tt_cores):
     """
     Reconstructs a full tensor from its TT decomposition.
@@ -211,7 +211,7 @@ def reconstruct_from_tt(tt_cores):
     for i in range(1, len(tt_cores)):
         # Contract along the bond dimension
         tensor = np.tensordot(tensor, tt_cores[i], axes=([-1], [0]))
-    
+
     # Get original dimensions from the cores
     dimensions = [core.shape[1] for core in tt_cores]
     return tensor.reshape(dimensions)
@@ -269,15 +269,17 @@ def tt_svd(tensor, rank):
     unfolding = unfolding.reshape(tt_ranks[-2], shape[-1], tt_ranks[-1])
     cores.append(unfolding)
     return cores
+
+
 def left_orthogonalize(tt_cores):
     d = len(tt_cores)
-    
+
     for k in range(d - 1):
         # Reshape current core into a tall matrix: (r_prev * n_k) x r_curr
         G = tt_cores[k]
         r_prev, n_k, r_curr = G.shape
         Gmat = G.reshape(r_prev * n_k, r_curr)
-        
+
         # QR decomposition to orthogonalize
         if k!=d-1:
             U, S, Vt = np.linalg.svd(Gmat,full_matrices=False)
@@ -297,12 +299,14 @@ def left_orthogonalize(tt_cores):
 
         else:
             Q = Gmat
-            
+
             tt_cores[k] = Gmat
-            
+
         print(f"tt_cores{k}.shape: {tt_cores[k].shape}")
     print(f"tt_cores[-1].shape: {tt_cores[-1].shape}")
     return tt_cores
+
+
 def right_orthogonalize(tt_cores):
     d = len(tt_cores)
     for k in reversed(range(1, d)):
@@ -328,6 +332,8 @@ def right_orthogonalize(tt_cores):
         print(f"tt_cores[{k}].shape: {tt_cores[k].shape}")
     print(f"tt_cores[0].shape: {tt_cores[0].shape}")
     return tt_cores
+
+
 def tt_orthogonalize(tt_cores, types="svd", left_right="left"):
     '''
     inputs: tt_cores: list of numpy arrays or list of torch tensors
@@ -343,7 +349,7 @@ def tt_orthogonalize(tt_cores, types="svd", left_right="left"):
             G = tt_cores[k]
             r_prev, n_k, r_curr = G.shape
             Gmat = G.reshape(r_prev * n_k, r_curr)
-            
+
             # QR decomposition to orthogonalize
 
             if k != d - 1:
@@ -371,10 +377,8 @@ def tt_orthogonalize(tt_cores, types="svd", left_right="left"):
 
             else:
                 Q = Gmat
-                
-                tt_cores[k] = Gmat
-                
 
+                tt_cores[k] = Gmat
     elif left_right == "right":
         d = len(tt_cores)
         for k in reversed(range(1, d)):
@@ -422,56 +426,55 @@ def tt_orthogonalize(tt_cores, types="svd", left_right="left"):
                 raise NotImplementedError("Right orthogonalization with QR decomposition is not implemented.")
             else:
                 raise ValueError("Invalid orthogonalization type. Choose 'svd' or 'qr'.")
-        
+
     return tt_cores
+
+
 def tt_orth_at(x, pos, dir):
     """Orthogonalize single core.
-    
+
     x = orth_at(x, pos, 'left') left-orthogonalizes the core at position pos
     and multiplies the corresponding R-factor with core pos+1. All other cores
     are untouched. The modified tensor is returned.
-    
+
     x = orth_at(x, pos, 'right') right-orthogonalizes the core at position pos
     and multiplies the corresponding R-factor with core pos-1. All other cores
     are untouched. The modified tensor is returned.
-    
+
     See also orthogonalize.
     """
-    
+
     # Adapted from the TTeMPS Toolbox.
-    
+
     Un = x[pos] # get the core at position pos
     if dir.lower() == 'left':
-        
         Q, R = tl.qr(Un.reshape(-1, x.rank[pos+1]), mode='reduced') # perform QR decomposition
         # Fixed signs of x.U{pos},  if it is orthogonal.
         # This needs for the ASCU algorithm when it updates ranks both sides.
         sR = np.sign(np.diag(R)) # get the signs of the diagonal elements of R
         Q = Q * sR # multiply Q by the signs
         R = (R.T * sR).T # multiply R by the signs
-        
+
         # Note that orthogonalization might change the ranks of the core Xn
         # and X{n+1}. For such case, the number of entries is changed
-        # accordingly. 
-        # Need to change structure of the tt-tensor 
+        # accordingly.
+        # Need to change structure of the tt-tensor
         # pos(n+1)
         #
         # update the core X{n}
         Un = Q.reshape(x.rank[pos], x.shape[pos], -1) # reshape Q to the core shape
-        
+
         # update the core X{n+1}
         Un2 = R @ x[pos+1].reshape(x.rank[pos+1], -1) # multiply R by the next core
-        
-        # Check if rank-n is preserved 
+
+        # Check if rank-n is preserved
         x[pos] = Un.reshape(x[pos].shape[0],x[pos].shape[1],R.shape[0]) # update the current core
         x[pos+1] = Un2.reshape(R.shape[0],x[pos+1].shape[1],-1) # update the next core
-        
+
         if R.shape[0] != x.rank[pos+1]:
             x.rank = list(x.rank) # convert the tuple to a list
             x.rank[pos+1] = R.shape[0] # assign the new value
             x.rank = tuple(x.rank) # convert the list back to a tuple
-
-    
     elif dir.lower() == 'right':
         # mind the transpose as we want to orthonormalize rows
         Q, R = tl.qr(Un.reshape(x.rank[pos], -1).T, mode='reduced') # perform QR decomposition on the transpose
@@ -481,60 +484,65 @@ def tt_orth_at(x, pos, dir):
         sR = np.sign(np.diag(R)) # get the signs of the diagonal elements of R
         Q = Q * sR # multiply Q by the signs
         R = (R.T * sR).T # multiply R by the signs
-        
+
         Un = Q.T.reshape(-1, x.shape[pos], x.rank[pos+1]) # reshape Q transpose to the core shape
         Un2 = x[pos-1].reshape(-1, x.rank[pos]) @  R.T # multiply the previous core by R transpose
-        
+
         x[pos] = Un.reshape(Un.shape[0],x[pos].shape[1],-1) # update the current core
         x[pos-1] = Un2.reshape(x[pos-1].shape[0],x[pos-1].shape[1],-1) # update the previous core
-        
+
         if R.shape[0] != x.rank[pos]:
             x.rank = list(x.rank) # convert the tuple to a list
             x.rank[pos] = R.shape[0] # assign the new value
             x.rank = tuple(x.rank) # convert the list back to a tuple
     else:
         raise ValueError('Unknown direction specified. Choose either LEFT or RIGHT')
-    
+
     return x
+
 
 def tt_orthogonalize(x, pos):
     """Orthogonalize tensor.
-    
+
     x = orthogonalize(x, pos) orthogonalizes all cores of the TTeMPS tensor x
     except the core at position pos. Cores 1...pos-1 are left-, cores pos+1...end
     are right-orthogonalized. Therefore,
-    
+
     x = orthogonalize(x, 1) right-orthogonalizes the full tensor,
-    
+
     x = orthogonalize(x, x.order) left-orthogonalizes the full tensor.
-    
+
     See also orth_at.
     """
-    
+
     # adapted from the TTeMPS Toolbox.
-    
+
     # left orthogonalization till pos (from left)
     for i in range(pos):
         # print(f'Left orthogonalization {i}')
         x = tt_orth_at(x, i, 'left')
-    
+
     # right orthogonalization till pos (from right)
     ndimX = len(x.factors)
 
     for i in range(ndimX-1, pos, -1):
         # print(f'Right orthogonalization {i}')
         x = tt_orth_at(x, i, 'right')
-    
+
     return x
+
+
 def is_left_orthogonal(core):
     r_prev, n, r_curr = core.shape
     Gmat = core.reshape(r_prev * n, r_curr)
     return np.allclose(Gmat.T @ Gmat, np.eye(r_curr))
 
+
 def is_right_orthogonal(core):
     r_prev, n, r_curr = core.shape
     Gmat = core.reshape(r_prev, n * r_curr)
     return np.allclose(Gmat @ Gmat.T, np.eye(r_prev))
+
 
 def DMD(X1, X2, r, dt):
         U, s, Vh = np.linalg.svd(X1, full_matrices=False)
@@ -561,3 +569,68 @@ def DMD(X1, X2, r, dt):
         X_dmd = np.dot(np.array(Phi), time_dynamics.T)
 
         return Phi, omega, Lambda, alpha1, b, X_dmd, time_dynamics.T
+
+
+def pseudoinverse(tt_cores: list, l: int):
+    """Calculate pseudoinverse.
+
+    Parameters
+    ----------
+        tt_cores : list
+            List of TT cores, each is a np.ndarray with a shape of (r_prev,
+            d_mode, r_next).
+        l : int
+            Core number to split the tensor train and assemble a matrix.
+
+    Returns
+    -------
+        Pseudoinverse matrix of tt decomposition relative to given core number.
+    """
+
+    # Step 1. Given a tensor x in TT-format and core number 1 <= l <= d − 1 to
+    # compute pseudoinverse of x(n_1, ..., n_l; n_(l+1), ..., n_d).
+
+    tt_cores_copy = np.copy(tt_cores)
+    d = tt_cores_copy.shape[0]
+
+    if not 1 <= l <= d-1:
+        raise ValueError("""Core number must be between 1 and d-1. It is not
+                            possible to split a tensor train otherwise.""")
+
+    l -= 1
+
+    # Step 2. Left-orthonormalize x_1, ..., x_(l-1) and right-orthonormalize
+    # x_d, ..., x_(l+1).
+
+    tt_cores_copy[0:l-1] = left_orthogonalize(tt_cores_copy[0:l-1])
+    tt_cores_copy[l+1:d:-1] = right_orthogonalize(tt_cores_copy[l+1:d:-1])
+
+    # Step 3. Compute SVD of x_l(r_(l-1), n_l; r_l).
+
+
+
+    # Step 4. Define tensor "y".
+
+    y =
+
+    # Step 5. Define tensor "z".
+
+    z =
+
+    # Step 6.
+
+    x[l] = y
+    x[l+1] = z
+    r[l] = s
+
+    # Step 7. Compute matrix M.
+
+    tensor = np.tensordot(tensor, tt_cores[i], axes=([-1], [0]))
+
+    # Step 8. Compute matrix N.
+
+    tensor = np.tensordot(tensor, tt_cores[i], axes=([-1], [0]))
+
+    # Step 9. Compute pseudo-inverse and return.
+
+    return N.T @ np.inv(Sigma) @ M.T
