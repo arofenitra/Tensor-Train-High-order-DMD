@@ -223,18 +223,16 @@ HODMD addresses these issues by using delay embedding, allowing us to:
 
 #### 1. Build Delay-Embedded Matrices
 
-Given the original data matrix $ X \in \mathbb{R}^{M \times N} $, construct the delay-embedded matrices:
+Given the original data matrix $X \in \mathbb{R}^{M \times N}$, construct the delay-embedded matrices:
 
-$$
-\mathcal{X}_1 =
+$$\mathcal{X}_1 =
 \begin{bmatrix}
 \mathbf{x}_1 & \mathbf{x}_2 & \cdots & \mathbf{x}_{N-d} \\
 \mathbf{x}_2 & \mathbf{x}_3 & \cdots & \mathbf{x}_{N-d+1} \\
 \vdots & \vdots & \ddots & \vdots \\
 \mathbf{x}_d & \mathbf{x}_{d+1} & \cdots & \mathbf{x}_N
 \end{bmatrix}
-\in \mathbb{R}^{Md \times N - d + 1}
-$$
+\in \mathbb{R}^{Md \times N - d + 1}$$
 
 Split into two parts:
 
