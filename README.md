@@ -112,7 +112,7 @@ $$\sum_{j=1}^{n_j} G_j(i)G_j(i)^T = I$$
 
 - Given a sequence of d-dimensional tensors  $X_i​∈\mathbb{R}^{n_1​×n_2​×⋯×_{n_d}}$​, stack them into two large tensor datasets $\mathcal{X}$ and $\mathcal{Y}$.
 - Compute a low-rank TT-format decomposition  of these tensor datasets.
-- Use properties of the TT-decomposition to compute the pseudoinverse  of the tensor unfolding $\mathcal{X}=\text{matricize}(\mathcal{X})$ without explicitly forming the full matrix.
+- Use properties of the TT-decomposition to compute the pseudoinverse $X^{+}$ of the tensor unfolding $\mathcal{X}=\text{matricize}(\mathcal{X})$ without explicitly forming the full matrix.
 - Compute the DMD operator $\mathcal{A}=\mathcal{Y}\mathcal{X}^+$, and extract its eigenvalues and eigenvectors — the DMD modes and frequencies.
 
 # DMD
