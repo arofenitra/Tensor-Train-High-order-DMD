@@ -70,7 +70,7 @@ $\mathcal{T}_{(1)}^{'} \rightarrow \mathcal{T}_{(2)}^{'} \in \mathbb{R}^{(r_1 n_
 
 - **Step 4**: SVD on mod-1,2 tensor
 1. $\mathcal{T}_{(2)}' = U_2 \Sigma_2 V_2^T$, where $U_2 \in \mathbb{R}^{(r_1 n_2) \times r_2}$, $\Sigma_2 \in \mathbb{R}^{r_2 \times r_2}$, and $V_2 \in \mathbb{R}^{(n_3 \times \ldots \times n_d) \times r_2}$
-2. $G^{(2)} = $ reshape $U_2 $ into $r_1 \times n_2 \times r_2$ and $\mathcal{T}_{(2)}'' = \Sigma_2 \cdot V_2^T$
+2. $G^{(2)} =$ reshape $U_2$ into $r_1 \times n_2 \times r_2$ and $\mathcal{T}_{(2)}'' = \Sigma_2 \cdot V_2^T$
 
 - **Step 5**: Repeat step 3 and 4 until the last mode
 
@@ -92,7 +92,7 @@ Inputs : Cores of the TT-decomposition : $G_1$ (dim: $1\times n_1 \times r_1$), 
 
 **c.** Multiply $R$ to the next cores $G_1$, the result will be of shape $(s_1,n_2,r_2)$.  Reshape it into $(s_1*n_2,r_2)$
 
-**d.** Perform **SVD** decomposition(seen as QR) of current core (here $G_1$), i.e. $G_1=(U_1S_1V_1^T)$ where $Q=U_1:((s_1*n_2)\times s_2)$ and $R=S_1V_1^T: (s_2 \times r_2)$ and takes the 2nd core as $Q:$ reshape$(s_1,n_2,s_2)$
+**d.** Perform **SVD** decomposition(seen as QR) of current core (here $G_1$), i.e. $G_1=(U_1S_1V_1^T)$ where $Q=U_1:((s_1*n_2)\times s_2)$ and $R=S_1V_1^T: (s_2 \times r_2)$ and takes the 2nd core as $Q:$ reshape $(s_1,n_2,s_2)$
 
 **e.** Multiply $R$ to the next cores $G_2$, the result will be of shape $(s_2,n_3,r_3)$.  Reshape it into $(s_2*n_3,r_3)$
 
@@ -124,7 +124,9 @@ Let $X\in \mathbf{R}^{M\times N}$ be a data matrix.
 - Each column of $X$ is a snapshot of the system.
 - Each row of $X$ is a time series of a single variable.
 
-We consider several snapshots, denoted as $X_{i_1}^{i_2} = [\mathbf{x}_{i_1}, \mathbf{x}_{i_1+1}, \ldots, \mathbf{x}_{i_2}]$. The full snapshot matrix is $X = X_{1}^{N}=[\mathbf{x}_1, \mathbf{x}_2, \ldots, \mathbf{x}_{N}]$. The full snapshot matrix is $X = X_{1}^{N}=[\mathbf{x}_1, \mathbf{x}_2, \ldots, \mathbf{x}_{N}]$, where each $\mathbf{x}_i=\mathbf{x}(t_i)\in \mathbf{R}^{M}$, is a snapshot of the system at time $t_i =t_1+(i-1)\Delta t $.
+We consider several snapshots, denoted as  
+$X_{i_1}^{i_2} = [\mathbf{x}_{i_1}, \mathbf{x}_{i_1+1}, \ldots, \mathbf{x}_{i_2}]$ . The full snapshot matrix is $X = X_{1}^{N}=[\mathbf{x}_1, \mathbf{x}_2, \ldots, \mathbf{x}_{N}]$ .  
+The full snapshot matrix is $X = X_{1}^{N}=[\mathbf{x}_1, \mathbf{x}_2, \ldots, \mathbf{x}_{N}]$, where each $\mathbf{x}_i=\mathbf{x}(t_i)\in \mathbf{R}^{M}$, is a snapshot of the system at time $t_i =t_1+(i-1)\Delta t$ .
 
 ## Assumption of DMD
 
