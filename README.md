@@ -66,7 +66,7 @@ $\mathcal{T} \rightarrow \mathcal{T}_{(1)} \in \mathbb{R}^{n_1 \times (n_2 \time
 
 - **Step 3**: Reshaping into mod-1,2 tensor
 
-$$\mathcal{T}_{(1)}^{'} \rightarrow \mathcal{T}_{(2)}^{'} \in \mathbb{R}^{(r_1 n_2) \times (n_3 \times \ldots \times n_d)}$$
+$\mathcal{T}_{(1)}^{'} \rightarrow \mathcal{T}_{(2)}^{'} \in \mathbb{R}^{(r_1 n_2) \times (n_3 \times \ldots \times n_d)}$
 
 - **Step 4**: SVD on mod-1,2 tensor
 1. $\mathcal{T}_{(2)}' = U_2 \Sigma_2 V_2^T$, where $U_2 \in \mathbb{R}^{(r_1 n_2) \times r_2}$, $\Sigma_2 \in \mathbb{R}^{r_2 \times r_2}$, and $V_2 \in \mathbb{R}^{(n_3 \times \ldots \times n_d) \times r_2}$
