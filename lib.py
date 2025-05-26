@@ -10,7 +10,8 @@ import matplotlib.pyplot as plt
 from pydmd import HODMD
 from pydmd.plotter import plot_eigs, plot_summary
 import warnings
-
+from scipy import io
+from mpl_toolkits.mplot3d import Axes3D
 warnings.filterwarnings("ignore")
 
 import numpy as np
@@ -18,7 +19,7 @@ import matplotlib.pyplot as plt
 from pydmd import DMD, BOPDMD
 from pydmd.plotter import plot_eigs, plot_summary
 from pydmd.preprocessing import hankel_preprocessing
-from lib import *
+# from lib import *
 from pydmd.preprocessing import hankel_preprocessing
 import pydmd
 
@@ -33,6 +34,7 @@ def dynamic_mode_decomposition(xi, t, f, r=20,indices=[170, 199, 210]):
         f (np.ndarray): Spatio-temporal data matrix of shape (len(t), len(xi)).
         r (int): Rank for SVD truncation.
     """
+    
     N_train = f.shape[0] // 2
     f_train = f[:N_train]
     t_train = t[:N_train]
@@ -43,7 +45,7 @@ def dynamic_mode_decomposition(xi, t, f, r=20,indices=[170, 199, 210]):
     X2 = X[:, 1:]
 
     # Step 2: Singular Value Decomposition
-    U, Sdiag, Vh = linalg.svd(X1, full_matrices=False)
+    U, Sdiag, Vh = np.linalg.svd(X1, full_matrices=False)
     S = np.diag(Sdiag)
     V = np.conj(Vh).T
 
@@ -51,15 +53,15 @@ def dynamic_mode_decomposition(xi, t, f, r=20,indices=[170, 199, 210]):
     Sr = S[:r, :r]
     Vr = V[:, :r]
     # Step 3: Compute Atilde
-    Atilde = np.dot(np.conj(Ur.T), np.dot(X2, np.dot(Vr, linalg.inv(Sr))))
-    Lambda_diag, W = linalg.eig(Atilde)
+    Atilde = np.dot(np.conj(Ur.T), np.dot(X2, np.dot(Vr, np.linalg.inv(Sr))))
+    Lambda_diag, W = np.linalg.eig(Atilde)
     Phi = np.dot(X2, np.dot(Vr, np.dot(linalg.inv(Sr), W)))
 
     omega = np.log(Lambda_diag) / (t[1] - t[0])
 
     # Step 4: Reconstruct signal
     x1 = X[:, 0]
-    b = linalg.pinv(Phi) @ x1
+    b = np.linalg.pinv(Phi) @ x1
 
     t_dyn = np.zeros((r, len(t_train)), dtype=complex)
     for i in range(len(t_train)):
@@ -196,6 +198,49 @@ def plot_2d_prediction(t_ext, xi, f_dmd_ext):
     plt.ylabel("Space (x)")
     plt.show()
 
+
+def delayed_matrix(X, delay,vstack=True):
+    n, t = X.shape
+    cols = t - delay + 1
+    X_delayed = [X[:, i:i+cols] for i in range(delay)]
+    if not vstack:
+        return np.hstack(X_delayed)
+    return np.vstack(X_delayed)
+
+def tolerance(S, threshold=1e-6):
+    S_squared = S**2
+    total_energy = np.sum(S_squared)
+    cumulative = np.cumsum(S_squared[::-1])[::-1]
+    EE = cumulative / total_energy
+    N = np.argmax(EE <= threshold)
+    return int(N)
+
+def HODMD(X, delay, energy_threshold, dt):
+    X_aug = delayed_matrix(X, delay)
+    X1 = X_aug[:, :-1]
+    X2 = X_aug[:, 1:]
+
+    U, S, Vh = np.linalg.svd(X1, full_matrices=False)
+    r = tolerance(S, energy_threshold)
+
+    Ur = U[:, :r].astype(np.complex128)
+    Sr = np.diag(S[:r]).astype(np.complex128)
+    Vr = Vh.conj().T[:, :r].astype(np.complex128)
+
+    Atilde = Ur.conj().T @ X2 @ Vr @ np.linalg.inv(Sr)
+    Lambda, W = np.linalg.eig(Atilde)
+    Phi = X2 @ Vr @ np.linalg.inv(Sr) @ W
+    omega = np.log(Lambda) / dt
+
+    alpha1 = np.linalg.lstsq(Phi, X1[:, 0], rcond=None)[0]
+
+    time_dynamics = np.zeros((r, X1.shape[1]), dtype=np.complex128)
+    print("x1shape",X1.shape[1])
+    for i in range(X1.shape[1]):
+        time_dynamics[:, i] = alpha1 * np.exp(omega * ((i + 1) * dt))
+
+    X_dmd = Phi @ time_dynamics
+    return X_dmd, r
 
 def reconstruct_from_tt(tt_cores):
     """
