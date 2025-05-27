@@ -1,0 +1,7 @@
+numpy<2
+tensorly
+torch
+matplotlib
+pydmd
+scipy
+mpl-tools
