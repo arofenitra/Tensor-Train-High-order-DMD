@@ -5,7 +5,7 @@ This project focuses on the Tensor Train Implementation of DMD and HODMD algorit
 ## Repository Structure
 
 .  
-├── src
+├── src  
 │   └── lib.py                # Contains all functions and imports  
 ├── .Trash_and_failed_implementation  
 │   └── ...                  # Contains failed results  
