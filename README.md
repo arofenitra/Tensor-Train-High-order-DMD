@@ -6,19 +6,19 @@ This project focuses on the Tensor Train Implementation of DMD and HODMD algorit
 
 .
 ├── src
-│   └── lib.py                # Contains all functions and imports
-├── .Trash_and_failed_implementation
-│   └── ...                  # Contains failed results
-├── .vscode
-├── notebook
-│   └── ...                  # Contains all used .ipynb files
-├── .jupyter_ystore.db
-├── README.md
-├── requirements.txt
-├── dataset
-│   └── VORTAL.mat           # Dataset used in the project
-└── docs
-└── ...                 # Contains all used PDF implementations
+│   └── lib.py                # Contains all functions and imports  
+├── .Trash_and_failed_implementation  
+│   └── ...                  # Contains failed results  
+├── .vscode  
+├── notebook  
+│   └── ...                  # Contains all used .ipynb files  
+├── .jupyter_ystore.db  
+├── README.md  
+├── requirements.txt  
+├── dataset  
+│   └── VORTAL.mat           # Dataset used in the project  
+└── docs  
+└── ...                 # Contains all used PDF implementations  
 
 
 
